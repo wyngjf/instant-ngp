@@ -2447,6 +2447,57 @@ void Testbed::Nerf::Training::reset_camera_extrinsics() {
 	}
 }
 
+void Testbed::export_train_trajectory(const std::string& filename, bool export_extrinsics_in_quat_format) {
+    tlog::info() << "Saving a total of " << m_nerf.training.n_images_for_training << " poses to " << filename;
+    nlohmann::json trajectory;
+    for(int i = 0; i < m_nerf.training.n_images_for_training; ++i) {
+        nlohmann::json frame {{"id", i}};
+
+        set_camera_to_training_view(i);
+
+//        const Eigen::Matrix<float, 3, 4> p_nerf = m_nerf.training.get_camera_extrinsics(i);
+        Eigen::Matrix<float, 3, 4> p_nerf = m_nerf.training.transforms[i].start;
+        p_nerf.col(0) *= -1.f;
+        p_nerf.col(1) *= -1.f;
+        if (export_extrinsics_in_quat_format) {
+            // Assume 30 fps
+            frame["time"] =  i*0.033f;
+            // Convert the pose from NeRF to Quaternion format.
+            const Eigen::Matrix<float, 3, 3> conv_coords_l {{ 0.f,  1.f,  0.f},
+                                                            { 0.f,  0.f, -1.f},
+                                                            {-1.f,  0.f,  0.f}};
+            const Eigen::Matrix<float, 4, 4> conv_coords_r {{ 1.f,  0.f,  0.f,  0.f},
+                                                            { 0.f, -1.f,  0.f,  0.f},
+                                                            { 0.f,  0.f, -1.f,  0.f},
+                                                            { 0.f,  0.f,  0.f,  1.f}};
+            const Eigen::Matrix<float, 3, 3> conv_coords   {{ -1.f, 0.f,  0.f},
+                                                            { 0.f, -1.f,  0.f},
+                                                            { 0.f,  0.f,  1.f}};
+//            const Eigen::Matrix<float, 3, 4> p_quat = conv_coords_l * p_nerf * conv_coords_r;
+//            const Eigen::Matrix<float, 3, 4> p_quat = conv_coords_l * p_nerf;
+//            const Eigen::Matrix<float, 3, 4> p_quat = p_nerf;
+
+            const Eigen::Quaternionf rot_q {p_nerf.block<3, 3>(0, 0)};
+//            frame["q"] = {rot_q.w(), rot_q.x(), rot_q.y(), rot_q.z()};
+//            frame["t"] = {p_quat(0, 3), p_quat(1, 3), p_quat(2, 3)};
+            frame["R"] = {rot_q.w(), rot_q.x(), rot_q.y(), rot_q.z()};
+            frame["T"] = {p_nerf(0, 3), p_nerf(1, 3), p_nerf(2, 3)};
+        } else {
+            frame["transform_matrix"] = {p_nerf.row(0), p_nerf.row(1), p_nerf.row(2)};
+        }
+        frame["fov"] = fov();
+        frame["scale"] = scale();
+        frame["aperture_size"] = m_aperture_size;
+        frame["glow_mode"] = 0;
+        frame["glow_y_cutoff"] = 0.f;
+        frame["slice"] = m_slice_plane_z;
+
+        trajectory.emplace_back(frame);
+    }
+    std::ofstream file(filename);
+    file << std::setw(2) << trajectory << std::endl;
+}
+
 void Testbed::Nerf::Training::export_camera_extrinsics(const std::string& filename, bool export_extrinsics_in_quat_format) {
 	tlog::info() << "Saving a total of " << n_images_for_training << " poses to " << filename;
 	nlohmann::json trajectory;

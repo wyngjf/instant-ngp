@@ -422,6 +422,8 @@ public:
 	void compute_and_save_marching_cubes_mesh(const char* filename, Eigen::Vector3i res3d = Eigen::Vector3i::Constant(128), BoundingBox aabb = {}, float thresh = 2.5f, bool unwrap_it = false);
 	Eigen::Vector3i compute_and_save_png_slices(const char* filename, int res, BoundingBox aabb = {}, float thresh = 2.5f, float density_range = 4.f, bool flip_y_and_z_axes = false);
 
+    void export_train_trajectory(const std::string& filename, bool export_extrinsics_in_quat_format = true);
+
 	////////////////////////////////////////////////////////////////
 	// marching cubes related state
 	struct MeshState {

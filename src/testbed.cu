@@ -517,10 +517,16 @@ void Testbed::imgui() {
 			if (m_nerf.training.dataset.n_extra_learnable_dims) {
 				ImGui::Checkbox("Train latent codes", &m_nerf.training.optimize_extra_dims);
 			}
-			static char opt_extr_filename_buf[1024] = "./trajectory.json";
+			static char opt_extr_filename_buf[1024] = "";
+            if (opt_extr_filename_buf[0] == '\0') {
+                snprintf(opt_extr_filename_buf, sizeof(opt_extr_filename_buf), "%s", (m_data_path.str() + "/trajectory.json").c_str());
+            }
+//			static char opt_extr_filename_buf[1024] = "./trajectory.json";
+
 			static bool export_extrinsics_in_quat_format = true;
 			if (imgui_colored_button("Export extrinsics", 0.4f)) {
-				m_nerf.training.export_camera_extrinsics(opt_extr_filename_buf, export_extrinsics_in_quat_format);
+//				m_nerf.training.export_camera_extrinsics(opt_extr_filename_buf, export_extrinsics_in_quat_format);
+                export_train_trajectory(opt_extr_filename_buf, export_extrinsics_in_quat_format);
 			}
 			ImGui::SameLine();
 			ImGui::PushItemWidth(400.f);
