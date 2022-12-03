@@ -2380,6 +2380,18 @@ void Testbed::render_nerf(CudaRenderBuffer& render_buffer, const Vector2i& max_r
 	}
 }
 
+Eigen::Matrix<float, 3, 3> Testbed::Nerf::Training::get_camera_intrinsics(int frame_idx) {
+    auto& m = dataset.metadata[frame_idx];
+    Eigen::Matrix3f intrinsics = Eigen::Matrix3f::Identity();
+
+    intrinsics(0, 0) = m.focal_length(0);
+    intrinsics(1, 1) = m.focal_length(1);
+    intrinsics(0, 2) = m.principal_point(0);
+    intrinsics(1, 2) = m.principal_point(1);
+    intrinsics(0, 1) = 0.0f;
+    return intrinsics;
+}
+
 void Testbed::Nerf::Training::set_camera_intrinsics(int frame_idx, float fx, float fy, float cx, float cy, float k1, float k2, float p1, float p2) {
 	if (frame_idx < 0 || frame_idx >= dataset.n_images) {
 		return;

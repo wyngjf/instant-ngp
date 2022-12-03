@@ -434,6 +434,10 @@ PYBIND11_MODULE(pyngp, m) {
 			"`thresh` is the density threshold; use 0 for SDF; 2.5 works well for NeRF. "
 			"If the aabb parameter specifies an inside-out (\"empty\") box (default), the current render_aabb bounding box is used."
 		)
+        // to export/set camera poses during rendering
+        .def("get_camera_from_time", &Testbed::get_camera_from_time, "get cam ngp path from time t in [0,1]", py::arg("t"))
+        .def("set_ngp_camera_matrix", &Testbed::set_ngp_camera_matrix, "set cam ngp path from time t in [0,1]", py::arg("k"))
+        .def("set_camera_from_keyframe", &Testbed::set_camera_from_keyframe, "set ngp keyframe pose", py::arg("k"))
 		;
 
 	// Interesting members.
@@ -516,6 +520,19 @@ PYBIND11_MODULE(pyngp, m) {
 		.def("set_crop_box", &Testbed::set_crop_box, py::arg("matrix"), py::arg("nerf_space") = true)
 		.def("crop_box_corners", &Testbed::crop_box_corners, py::arg("nerf_space") = true)
 		;
+
+    // export camerakeyframe interface
+    py::class_<CameraKeyframe> camera_keyframe(m, "CameraKeyframe");
+    camera_keyframe
+            .def_readwrite("R", &CameraKeyframe::R)
+            .def_readwrite("T", &CameraKeyframe::T)
+            .def_readwrite("aperture_size", &CameraKeyframe::aperture_size)
+            .def_readwrite("fov", &CameraKeyframe::fov)
+            .def_readwrite("glow_mode", &CameraKeyframe::glow_mode)
+            .def_readwrite("glow_y_cutoff", &CameraKeyframe::glow_y_cutoff)
+            .def_readwrite("scale", &CameraKeyframe::scale)
+            .def_readwrite("slice", &CameraKeyframe::slice)
+            ;
 
 	py::class_<Lens> lens(m, "Lens");
 	lens
@@ -621,6 +638,10 @@ PYBIND11_MODULE(pyngp, m) {
 			py::arg("p1")=0.f, py::arg("p2")=0.f,
 			"Set up the camera intrinsics for the given training image index."
 		)
+        .def("get_camera_intrinsics", &Testbed::Nerf::Training::get_camera_intrinsics,
+             py::arg("frame_idx"),
+             "get the camera intrinsics for the given training image index."
+        )
 		.def("set_camera_extrinsics", &Testbed::Nerf::Training::set_camera_extrinsics,
 			py::arg("frame_idx"),
 			py::arg("camera_to_world"),
