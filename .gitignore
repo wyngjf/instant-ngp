@@ -16,4 +16,5 @@ imgui.ini
 /data
 /archive
 /cmake-build-debug
+/dependencies/glew
 .idea
