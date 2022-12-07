@@ -10,8 +10,15 @@ function init_ngp(){
 
 function compile() {
 	cd $ngp_path || return
-	TCNN_CUDA_ARCHITECTURES=70 cmake . -B build -DNGP_BUILD_ON_CLUSTER=ON
+	#TCNN_CUDA_ARCHITECTURES=70 cmake . -B build -DNGP_BUILD_ON_CLUSTER=ON -DNGP_BUILD_WITH_GUI=OFF
+  cmake . -B build -DNGP_BUILD_ON_CLUSTER=ON
 	cmake --build build --config RelWithDebInfo -j60
+}
+
+
+function update_module(){
+	git submodule sync --recursive
+	git submodule update --recursive
 }
 
 
