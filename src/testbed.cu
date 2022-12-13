@@ -277,6 +277,10 @@ void Testbed::set_camera_to_training_view(int trainview) {
 	m_screen_center = Vector2f::Constant(1.0f) - m_nerf.training.dataset.metadata[0].principal_point;
 }
 
+Eigen::Matrix<float, 3, 4> Testbed::get_camera_of_training_view(int trainview) {
+    return get_xform_given_rolling_shutter(m_nerf.training.transforms[trainview], m_nerf.training.dataset.metadata[trainview].rolling_shutter, Vector2f{0.5f, 0.5f}, 0.0f);
+}
+
 void Testbed::reset_camera() {
 	m_fov_axis = 1;
 	set_fov(50.625f);

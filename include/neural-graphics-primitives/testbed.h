@@ -321,6 +321,7 @@ public:
 	void previous_training_view();
 	void next_training_view();
 	void set_camera_to_training_view(int trainview);
+    Eigen::Matrix<float, 3, 4> get_camera_of_training_view(int trainview);
 	void reset_camera();
 	bool keyboard_event();
 	void generate_training_samples_sdf(Eigen::Vector3f* positions, float* distances, uint32_t n_to_generate, cudaStream_t stream, bool uniform_only);

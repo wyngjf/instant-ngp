@@ -116,6 +116,7 @@ struct NerfDataset {
 		result.col(1) *= scale_columns ? -scale : -1.f;
 		result.col(2) *= scale_columns ? -scale : -1.f;
 		result.col(3) = result.col(3) * scale + offset;
+        tlog::info() << "scale: " << scale << " offset: " << offset[0] << " " << offset[1] << " " << offset[2];
 
 		if (from_mitsuba) {
 			result.col(0) *= -1;
