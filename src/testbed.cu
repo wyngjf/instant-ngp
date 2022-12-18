@@ -269,7 +269,8 @@ void Testbed::next_training_view() {
 
 void Testbed::set_camera_to_training_view(int trainview) {
 	auto old_look_at = look_at();
-	m_camera = m_smoothed_camera = get_xform_given_rolling_shutter(m_nerf.training.transforms[trainview], m_nerf.training.dataset.metadata[trainview].rolling_shutter, Vector2f{0.5f, 0.5f}, 0.0f);
+//	m_camera = m_smoothed_camera = get_xform_given_rolling_shutter(m_nerf.training.transforms[trainview], m_nerf.training.dataset.metadata[trainview].rolling_shutter, Vector2f{0.5f, 0.5f}, 0.0f);
+	m_camera = m_smoothed_camera = m_nerf.training.transforms[trainview].start;
 	m_relative_focal_length = m_nerf.training.dataset.metadata[trainview].focal_length / (float)m_nerf.training.dataset.metadata[trainview].resolution[m_fov_axis];
 	m_scale = std::max((old_look_at - view_pos()).dot(view_dir()), 0.1f);
 	m_nerf.render_with_lens_distortion = true;
@@ -668,7 +669,8 @@ void Testbed::imgui() {
 		if (!m_dynamic_res) {
 			ImGui::SliderInt("Fixed resolution factor", &m_fixed_res_factor, 8, 64);
 		}
-
+		ImGui::Checkbox("Dex-NeRF", &m_dex_nerf);
+		ImGui::SliderFloat("Sigma threshold", &m_sigma_thrsh, 0.0f, 100.0f);
 		if (m_testbed_mode == ETestbedMode::Nerf && m_nerf.training.dataset.has_light_dirs) {
 			Vector3f light_dir = m_nerf.light_dir.normalized();
 			if (ImGui::TreeNodeEx("Light Dir (Polar)", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -2870,16 +2872,29 @@ void Testbed::render_frame(const Matrix<float, 3, 4>& camera_matrix0, const Matr
 					m_stream.get()
 				);
 			} else if (m_ground_truth_render_mode == EGroundTruthRenderMode::Depth && metadata.depth) {
-				render_buffer.overlay_depth(
+				render_buffer.overlay_image(
 					m_ground_truth_alpha,
-					metadata.depth,
-					1.0f/m_nerf.training.dataset.scale,
+					Array3f::Constant(m_exposure) + m_nerf.training.cam_exposure[m_nerf.training.view].variable(),
+					m_background_color,
+					to_srgb ? EColorSpace::SRGB : EColorSpace::Linear,
+					metadata.pixels,
+					metadata.image_data_type,
 					metadata.resolution,
 					m_fov_axis,
 					m_zoom,
 					Vector2f::Constant(0.5f),
 					m_stream.get()
 				);
+//				render_buffer.overlay_depth(
+//					m_ground_truth_alpha,
+//					metadata.depth,
+//					1.0f/m_nerf.training.dataset.scale,
+//					metadata.resolution,
+//					m_fov_axis,
+//					m_zoom,
+//					Vector2f::Constant(0.5f),
+//					m_stream.get()
+//				);
 			}
 		}
 
