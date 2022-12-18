@@ -102,51 +102,17 @@ struct NerfDataset {
 
 	Eigen::Vector3f nerf_direction_to_ngp(const Eigen::Vector3f& nerf_dir) {
 		Eigen::Vector3f result = nerf_dir;
-		if (from_mitsuba) {
-			result *= -1;
-		} else {
-			result = Eigen::Vector3f(result.y(), result.z(), result.x());
-		}
 		return result;
 	}
 
 	Eigen::Matrix<float, 3, 4> nerf_matrix_to_ngp(const Eigen::Matrix<float, 3, 4>& nerf_matrix, bool scale_columns = false) const {
 		Eigen::Matrix<float, 3, 4> result = nerf_matrix;
-		result.col(0) *= scale_columns ? scale : 1.f;
-		result.col(1) *= scale_columns ? -scale : -1.f;
-		result.col(2) *= scale_columns ? -scale : -1.f;
 		result.col(3) = result.col(3) * scale + offset;
-        tlog::info() << "scale: " << scale << " offset: " << offset[0] << " " << offset[1] << " " << offset[2];
-
-		if (from_mitsuba) {
-			result.col(0) *= -1;
-			result.col(2) *= -1;
-		} else {
-			// Cycle axes xyz<-yzx
-			Eigen::Vector4f tmp = result.row(0);
-			result.row(0) = (Eigen::Vector4f)result.row(1);
-			result.row(1) = (Eigen::Vector4f)result.row(2);
-			result.row(2) = tmp;
-		}
-
 		return result;
 	}
 
 	Eigen::Matrix<float, 3, 4> ngp_matrix_to_nerf(const Eigen::Matrix<float, 3, 4>& ngp_matrix, bool scale_columns = false) const {
 		Eigen::Matrix<float, 3, 4> result = ngp_matrix;
-		if (from_mitsuba) {
-			result.col(0) *= -1;
-			result.col(2) *= -1;
-		} else {
-			// Cycle axes xyz->yzx
-			Eigen::Vector4f tmp = result.row(0);
-			result.row(0) = (Eigen::Vector4f)result.row(2);
-			result.row(2) = (Eigen::Vector4f)result.row(1);
-			result.row(1) = tmp;
-		}
-		result.col(0) *= scale_columns ?  1.f/scale :  1.f;
-		result.col(1) *= scale_columns ? -1.f/scale : -1.f;
-		result.col(2) *= scale_columns ? -1.f/scale : -1.f;
 		result.col(3) = (result.col(3) - offset) / scale;
 		return result;
 	}
@@ -167,16 +133,6 @@ struct NerfDataset {
 		ray.o = ray.o * scale + offset;
 		if (scale_direction)
 			ray.d *= scale;
-
-		float tmp = ray.o[0];
-		ray.o[0] = ray.o[1];
-		ray.o[1] = ray.o[2];
-		ray.o[2] = tmp;
-
-		tmp = ray.d[0];
-		ray.d[0] = ray.d[1];
-		ray.d[1] = ray.d[2];
-		ray.d[2] = tmp;
 	}
 };
 
